@@ -72,6 +72,3 @@ service cloud.firestore {
 - `lib/firebase.ts`: Firebase 클라이언트
 - `components/install-app.tsx`, `public/`: PWA 설치와 아이콘, 오프라인 안내
 - `build/`, `scripts/`, `.openai/hosting.json`: 기존 Sites/Vinext 빌드 기반
-
-Sites 원본 커밋: `73ccde117b6f120c715e9509d42905287d9a96b6`.
-개인 메모 데이터, 로그인 세션, 빌드 결과와 로컬 캐시는 소스에 포함하지 않습니다.
