@@ -67,7 +67,7 @@ export function InstallApp(){
    <DialogTitle className="install-dialog-title">기억함 바로가기 앱을 설치하시겠습니까?</DialogTitle>
    <DialogDescription asChild><div className="install-dialog-description">
     <p>기억함은 플레이스토어에 공식 등록되어 있지 않아, 기기나 브라우저에 따라 설치 시 경고 문구가 표시될 수 있습니다.</p>
-    <p className="install-dialog-hint">설치 안내 아래에 ‘무시하고 설치’가 표시되는 경우, 해당 문구를 찾아 터치하여 설치해주세요.</p>
+    <p className="install-dialog-hint">‘상세정보 보기’를 터치하고 표시되는 안내사항 아래에 ‘무시하고 설치’가 표시되는 경우, 해당 문구를 찾아 터치하여 설치해주세요.</p>
     <p>아무 반응이 없는 경우 삼성 브라우저(인터넷)를 통해 이 사이트에 다시 접속 후 설치를 눌러주세요.</p>
    </div></DialogDescription>
    {unavailable&&<p className="install-dialog-status" role="status">현재 브라우저에서 설치 창을 열 수 없습니다. 갤럭시는 삼성 인터넷으로 다시 접속하거나 메뉴의 ‘홈 화면에 추가’를 이용해주세요. iPhone·iPad는 Safari 공유 메뉴의 ‘홈 화면에 추가’를 이용해주세요.</p>}
