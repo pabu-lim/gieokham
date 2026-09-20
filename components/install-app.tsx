@@ -66,11 +66,11 @@ export function InstallApp(){
   <DialogContent showCloseButton={false} className="install-dialog" onCloseAutoFocus={e=>{e.preventDefault();(returnFocus.current?.isConnected?returnFocus.current:document.querySelector<HTMLElement>('.install-menu-button, .quick-entry input'))?.focus()}}>
    <DialogTitle className="install-dialog-title">기억함 바로가기 앱을 설치하시겠습니까?</DialogTitle>
    <DialogDescription asChild><div className="install-dialog-description">
-    <p>기억함은 플레이스토어에 공식 등록되어 있지 않아, 기기나 브라우저에 따라 설치 시 경고 문구가 표시될 수 있습니다.</p>
-    <p className="install-dialog-hint">‘세부정보 더보기’를 터치하고 표시되는 안내사항 아래에 ‘무시하고 설치하기’가 표시되는 경우, 해당 문구를 찾아 터치하여 설치해주세요.</p>
+    <p>기억함은 플레이스토어에 공식 등록되어 있지 않아, 기기나 브라우저에 따라 설치 시 안드로이드의 <span style={{color:'#b91c1c'}}>‘안전하지 않은 앱 차단’</span>이 작동할 수 있습니다.</p>
+    <p className="install-dialog-hint"><strong>‘세부정보 더보기’</strong>를 터치하고 표시되는 안내사항 아래에 <strong>‘무시하고 설치하기’</strong>가 표시되는 경우, 해당 문구를 찾아 터치하여 설치해주세요.</p>
     <p>아무 반응이 없는 경우 삼성 브라우저(인터넷)를 통해 이 사이트에 다시 접속 후 설치를 눌러주세요.</p>
    </div></DialogDescription>
-   {unavailable&&<p className="install-dialog-status" role="status">현재 브라우저에서 설치 창을 열 수 없습니다. 갤럭시는 삼성 인터넷으로 다시 접속하거나 메뉴의 ‘홈 화면에 추가’를 이용해주세요. iPhone·iPad는 Safari 공유 메뉴의 ‘홈 화면에 추가’를 이용해주세요.</p>}
+   {unavailable&&<p className="install-dialog-status" role="status">현재 브라우저에서 설치 창을 열 수 없습니다. 주소창에 다운로드 아이콘이 있는 경우 터치하시거나 페이지를 새로고침해서 다시 접속한 후 설치해 주세요. 갤럭시는 삼성 인터넷으로 다시 접속하거나 메뉴의 ‘홈 화면에 추가’를 이용해주세요. iPhone·iPad는 Safari 공유 메뉴의 ‘홈 화면에 추가’를 이용해주세요.</p>}
    <div className="install-dialog-actions">
     <button type="button" className="install-dialog-cancel" onClick={()=>setHelp(false)}>설치 안 함</button>
     <button type="button" className="install-dialog-confirm" disabled={installing} onClick={install}>{installing?'설치 창 여는 중…':'설치하기'}</button>
