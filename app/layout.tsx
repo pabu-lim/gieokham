@@ -9,8 +9,9 @@ export const metadata: Metadata = {
   manifest: "/manifest.webmanifest",
   applicationName: "기억함",
   icons: {
-    icon: "/favicon.svg",
-    shortcut: "/favicon.svg",
+    icon: "/icons/memory-64.png",
+    shortcut: "/icons/memory-64.png",
+    apple: "/icons/memory-180.png",
   },
 };
 
