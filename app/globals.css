@@ -121,7 +121,7 @@ body.touch-reordering,body.touch-reordering *{user-select:none!important;-webkit
 
 /* One composer surface: text above, metadata and submit below. */
 .quick-composer{border:1.5px solid #bfd0f5;border-radius:14px;background:#fff;box-shadow:0 3px 12px #2d59a509;margin-bottom:24px;transition:border-color .15s,box-shadow .15s}
-.quick-composer:focus-within{border-color:#547fe4;box-shadow:0 0 0 3px #2458da0d}
+.quick-composer:has(.quick-entry input:focus){border-color:#547fe4;box-shadow:0 0 0 3px #2458da0d}
 .quick-composer .quick-entry{border:0;border-radius:0;box-shadow:none;padding:16px 18px;gap:12px}
 .quick-composer .quick-entry input{font-size:16px;background:transparent;min-height:40px}
 .quick-footer{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 14px;padding:10px 0;border-top:1px solid #edf0f6}
@@ -133,3 +133,7 @@ body.touch-reordering,body.touch-reordering *{user-select:none!important;-webkit
 .quick-options [data-slot="select-value"]{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .quick-footer>.primary{flex-shrink:0;min-height:44px;padding:10px 16px}
 @media(max-width:600px){.quick-composer .quick-entry{padding:12px}.quick-footer{margin:0 10px;gap:6px;align-items:flex-end}.quick-options{gap:0}.quick-options>div{max-width:100%}.quick-options>div>span{font-size:14px}.quick-options [data-slot="select-trigger"]{max-width:180px;padding:8px 6px}.quick-footer>.primary{padding:10px 12px}.quick-footer>.primary span{display:none}}
+
+/* Keep select focus visible without a blue border after popup dismissal. */
+.quick-options [data-slot="select-trigger"]:focus{outline:none;box-shadow:none;border-color:transparent}
+.quick-options [data-slot="select-trigger"]:focus-visible{background:#e9eef6;color:#243650;text-decoration:underline;text-underline-offset:4px}
