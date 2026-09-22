@@ -137,3 +137,5 @@ body.touch-reordering,body.touch-reordering *{user-select:none!important;-webkit
 /* Keep select focus visible without a blue border after popup dismissal. */
 .quick-options [data-slot="select-trigger"]:focus{outline:none;box-shadow:none;border-color:transparent}
 .quick-options [data-slot="select-trigger"]:focus-visible{background:#e9eef6;color:#243650;text-decoration:underline;text-underline-offset:4px}
+
+.page-heading{margin-bottom:12px}.composer-caption{font-size:14px;line-height:1.6;color:#75839a;margin:0 0 12px}.is-home h1{display:block;line-height:1.45;word-break:keep-all;overflow-wrap:anywhere}
