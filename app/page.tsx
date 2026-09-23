@@ -49,6 +49,7 @@ function endDetailSwipe(e:React.TouchEvent){
 const [real,setReal]=useState<Data>(empty),[sample,setSample]=useState<Data|null>(null),[ready,setReady]=useState(false),[error,setError]=useState(''),[view,setView]=useState('home'),[query,setQuery]=useState(''),[sort,setSort]=useState('custom'),[input,setInput]=useState(''),[selected,setSelected]=useState(''),[draft,setDraft]=useState<Task|null>(null),[settings,setSettings]=useState(false),[catDialog,setCatDialog]=useState(false),[catName,setCatName]=useState(''),[rename,setRename]=useState<string|null>(null),[confirmation,setConfirmation]=useState<{title:string;body:string;action:()=>void}|null>(null),[today,setToday]=useState(localDate),[backupText,setBackupText]=useState(''),[restoreText,setRestoreText]=useState(''),[draggedCategory,setDraggedCategory]=useState<string|null>(null),[categoryDrop,setCategoryDrop]=useState<{name:string;edge:'before'|'after'}|null>(null),[user,setUser]=useState<User|null>(null),[authReady,setAuthReady]=useState(false),[signingIn,setSigningIn]=useState(false),[syncing,setSyncing]=useState(false);const dragCategoryRef=useRef<string|null>(null);const dragTaskRef=useRef<string|null>(null);const [draggedTask,setDraggedTask]=useState<string|null>(null),[taskDrop,setTaskDrop]=useState<{id:string;edge:'before'|'after'}|null>(null);
 const [quickCategory,setQuickCategory]=useState(''),[quickPriority,setQuickPriority]=useState<Task['priority']>('중');
 const quickOptions=useRef({category:quickCategory,priority:quickPriority});quickOptions.current={category:quickCategory,priority:quickPriority};
+useEffect(()=>{const category=view.startsWith('cat:')?view.slice(4):'';setQuickCategory(category);quickOptions.current={...quickOptions.current,category}},[view]);
 const quick=useRef<HTMLInputElement>(null),file=useRef<HTMLInputElement>(null),composing=useRef(false),catComposing=useRef(false);const data=sample||real;const current=useRef({data,sample,ready,error,view,user});
 useEffect(()=>{current.current={data,sample,ready,error,view,user}},[data,sample,ready,error,view,user]);
 useEffect(()=>{const timer=setInterval(()=>setToday(localDate()),15000);const stop=onAuthStateChanged(auth,next=>{setUser(next);setAuthReady(true);setReady(false);setError('');setReal(empty());setSample(null);setSelected('');setDraft(null)});return()=>{clearInterval(timer);stop()}},[]);
@@ -83,8 +84,8 @@ function add(text=input){
  const category=live.categories.includes(options.category)?options.category:'';
  const t={...task(text),category,priority:options.priority};
  if(commit({...live,tasks:insertTask(live,t)})){
-  setInput('');setQuickCategory('');setQuickPriority('중');
-  quickOptions.current={category:'',priority:'중'};
+  setInput('');setQuickCategory(category);setQuickPriority('중');
+  quickOptions.current={category,priority:'중'};
   setView(category?'cat:'+category:'uncategorized');setQuery('');setSelected('');setDraft(null);quick.current?.focus();return t.id;
  }
  return false;
