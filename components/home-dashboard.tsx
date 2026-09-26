@@ -3,7 +3,7 @@ import {useEffect,useState} from 'react';
 import {ArrowUpRight,Clock3,NotebookPen,Sun} from 'lucide-react';
 import {Checkbox} from '@/components/ui/checkbox';
 import {attentionItems} from '@/lib/home';
-import {isToday,localDate,type Data,type Task} from '@/lib/memory';
+import {inCategory,categoryPath,categoryTree,isToday,localDate,type Data,type Task} from '@/lib/memory';
 export function HomeDashboard({data,onOpen,onDone,onNavigate}:{data:Data;onOpen:(t:Task)=>void;onDone:(t:Task)=>void;onNavigate:(view:string)=>void}){
  const [now,setNow]=useState(()=>new Date()),[expanded,setExpanded]=useState(false);
  useEffect(()=>{const timer=setInterval(()=>setNow(new Date()),30000);return()=>clearInterval(timer)},[]);
@@ -28,6 +28,6 @@ export function HomeDashboard({data,onOpen,onDone,onNavigate}:{data:Data;onOpen:
     {recent.length?recent.map(t=>row(t)):<div className="home-empty"><NotebookPen size={28}/><strong>첫 번째 기억을 남겨보세요.</strong><p>위 입력창에 내용만 적으면 됩니다.</p></div>}
    </section>
   </div>
-  <section className="home-card home-categories" aria-labelledby="categories-heading"><header className="home-section-heading"><div><span className="home-kicker">나만의 분류</span><h2 id="categories-heading">나의 카테고리</h2></div></header><div className="home-category-grid">{[...data.categories,''].map((c,i)=>{const count=active.filter(t=>t.category===c).length;return <button key={c||'__uncategorized'} className="home-category" onClick={()=>onNavigate(c?'cat:'+c:'uncategorized')}><span className={'category-color c'+i%6}>#</span><span className="home-category-name">{c||'미분류'}</span><strong>{count}<span className="sr-only">개 미완료</span></strong><ArrowUpRight size={15}/></button>})}</div><p className="home-category-note">카테고리를 눌러 기억을 모아 보세요.</p></section>
+  <section className="home-card home-categories" aria-labelledby="categories-heading"><header className="home-section-heading"><div><span className="home-kicker">나만의 분류</span><h2 id="categories-heading">나의 카테고리</h2></div></header><div className="home-category-grid">{[...categoryTree(data),''].map((c,i)=>{const count=active.filter(t=>c?inCategory(data,t.category,c):!t.category).length;return <button key={c||'__uncategorized'} className="home-category" onClick={()=>onNavigate(c?'cat:'+c:'uncategorized')}><span className={'category-color c'+i%6}>#</span><span className="home-category-name">{c?categoryPath(data,c).join(' › '):'미분류'}</span><strong>{count}<span className="sr-only">개 미완료</span></strong><ArrowUpRight size={15}/></button>})}</div><p className="home-category-note">카테고리를 눌러 기억을 모아 보세요.</p></section>
  </div>;
 }
