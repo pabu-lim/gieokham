@@ -152,3 +152,5 @@ body.touch-reordering,body.touch-reordering *{user-select:none!important;-webkit
 .home-category-grid{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
 @media(min-width:768px) and (max-width:1050px){.home-main{gap:16px}.home-main .home-section-heading{padding:18px 14px 14px;flex-wrap:wrap}.home-main .home-memory{padding:14px;gap:8px}}
 @media(max-width:767px){.home-dashboard{gap:18px}.home-main{display:grid;grid-template-columns:minmax(0,1fr);gap:18px}.home-category-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+.category-parent-label{display:grid;gap:8px;font-size:14px;color:#65728a}.category-parent-label [data-slot="select-trigger"]{width:100%}
