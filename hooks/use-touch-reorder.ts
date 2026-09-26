@@ -1,8 +1,9 @@
 'use client';
 import {useEffect,useRef} from 'react';
+import {categoryDropEdge} from '@/lib/memory';
 import {createReorderPreview} from '@/lib/reorder-preview';
 type Kind='category'|'task';
-type Edge='before'|'after';
+type Edge='before'|'after'|'inside';
 type Options={context:string;onStart:(kind:Kind,id:string)=>void;onTarget:(kind:Kind,id:string|null,edge:Edge)=>void;onDrop:(kind:Kind,source:string,target:string,edge:Edge)=>void;onEnd:()=>void};
 
 // Native non-passive listeners can stop scrolling only after a long press.
@@ -25,7 +26,7 @@ export function useTouchReorder(options:Options){
    const valid=row&&row.parentElement===d.list&&row.dataset.touchReorder===d.kind&&row.dataset.reorderId!==d.id;
    const id=valid?row.dataset.reorderId||null:null;
    const rect=valid?row.getBoundingClientRect():null;
-   const edge:Edge=rect&&d.y>=rect.top+rect.height/2?'after':'before';
+   const edge:Edge=rect&&d.kind==='category'?categoryDropEdge(d.y,rect.top,rect.height):rect&&d.y>=rect.top+rect.height/2?'after':'before';
    if(id!==d.target||edge!==d.edge){d.target=id;d.edge=edge;latest.current.onTarget(d.kind,id,edge)}
   };
   const tick=()=>{
