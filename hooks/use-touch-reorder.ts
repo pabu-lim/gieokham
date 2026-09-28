@@ -43,7 +43,7 @@ export function useTouchReorder(options:Options){
    if(event.touches.length!==1){stop();return}
    stop();
    const target=event.target instanceof Element?event.target:null;
-   if(!target||target.closest('input,textarea,select,[role="checkbox"],[contenteditable="true"],.rename'))return;
+   if(!target||target.closest('input,textarea,select,[role="checkbox"],[contenteditable="true"],.rename,.category-toggle'))return;
    const row=target.closest<HTMLElement>('[data-touch-reorder]');
    const kind=row?.dataset.touchReorder as Kind|undefined,id=row?.dataset.reorderId;
    if(!row||!row.parentElement||!id||(kind!=='task'&&kind!=='category'))return;
