@@ -4,13 +4,13 @@ import {InstallApp} from "@/components/install-app";
 export const viewport:Viewport={width:"device-width",initialScale:1,themeColor:"#2458da"};
 
 export const metadata: Metadata = {
-  title: "기억함 · 나의 메모와 할 일",
+  title: "기억함",
   description: "빠르게 기록하고 오늘 할 일을 확인하는 개인용 기억 보관함.",
   manifest: "/manifest.webmanifest",
   applicationName: "기억함",
   icons: {
-    icon: "/icons/memo-cutout-64.png",
-    shortcut: "/icons/memo-cutout-64.png",
+    icon: "/icons/bookmark-64.png",
+    shortcut: "/icons/bookmark-64.png",
     apple: "/icons/memo-cutout-180.png",
   },
 };
