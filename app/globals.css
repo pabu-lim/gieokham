@@ -171,14 +171,19 @@ body.touch-reordering,body.touch-reordering *{user-select:none!important;-webkit
 
 /* Wider desktop navigation and memo editor; preserve the mobile sheet. */
 @media(min-width:768px){
-  .detail-sheet{width:500px!important;max-width:calc(100vw - 48px)!important}
+  .detail-sheet{width:clamp(380px,34vw,500px)!important;max-width:calc(100vw - 48px)!important}
   .detail-sheet .editor{padding:28px 32px}
 }
 @media(min-width:1440px){
-  .main-grid{grid-template-columns:minmax(0,1fr) 500px}
+  .main-grid.has-detail:not(.is-home){grid-template-columns:minmax(0,1fr) clamp(380px,34vw,500px)}
 }
 @media(min-width:768px) and (max-width:1439px){
   .main-grid{grid-template-columns:minmax(0,1fr)}
   .detail-placeholder{display:none}
   .detail-sheet{box-shadow:-10px 0 30px #1834511a!important}
 }
+
+/* Do not reserve empty editor space while browsing memories. */
+.main-grid:not(.has-detail){grid-template-columns:minmax(0,1fr)}
+.detail-placeholder{display:none}
+.main-grid:not(.is-home):not(.has-detail)>.list-section{width:100%;max-width:1120px;margin-inline:auto}
