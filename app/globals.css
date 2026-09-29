@@ -168,3 +168,17 @@ body.touch-reordering,body.touch-reordering *{user-select:none!important;-webkit
 .brand>img.brand-wordmark{width:115px;height:44px;object-fit:contain;mix-blend-mode:multiply}.brand>span{width:44px;height:44px;flex-shrink:0}.auth-logo{border-radius:16px}
 
 .brand>img.brand-wordmark{width:92px;height:35px}.brand>span{width:48px;height:48px;overflow:visible}.auth-logo{background:transparent;border-radius:0;overflow:visible}
+
+/* Wider desktop navigation and memo editor; preserve the mobile sheet. */
+@media(min-width:768px){
+  .detail-sheet{width:560px!important;max-width:calc(100vw - 48px)!important}
+  .detail-sheet .editor{padding:28px 32px}
+}
+@media(min-width:1440px){
+  .main-grid{grid-template-columns:minmax(0,1fr) 560px}
+}
+@media(min-width:768px) and (max-width:1439px){
+  .main-grid{grid-template-columns:minmax(0,1fr)}
+  .detail-placeholder{display:none}
+  .detail-sheet{box-shadow:-10px 0 30px #1834511a!important}
+}
