@@ -171,11 +171,11 @@ body.touch-reordering,body.touch-reordering *{user-select:none!important;-webkit
 
 /* Wider desktop navigation and memo editor; preserve the mobile sheet. */
 @media(min-width:768px){
-  .detail-sheet{width:560px!important;max-width:calc(100vw - 48px)!important}
+  .detail-sheet{width:500px!important;max-width:calc(100vw - 48px)!important}
   .detail-sheet .editor{padding:28px 32px}
 }
 @media(min-width:1440px){
-  .main-grid{grid-template-columns:minmax(0,1fr) 560px}
+  .main-grid{grid-template-columns:minmax(0,1fr) 500px}
 }
 @media(min-width:768px) and (max-width:1439px){
   .main-grid{grid-template-columns:minmax(0,1fr)}
