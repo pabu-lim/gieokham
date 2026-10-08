@@ -187,3 +187,5 @@ body.touch-reordering,body.touch-reordering *{user-select:none!important;-webkit
 .main-grid:not(.has-detail){grid-template-columns:minmax(0,1fr)}
 .detail-placeholder{display:none}
 .main-grid:not(.is-home):not(.has-detail)>.list-section{width:100%;max-width:1120px;margin-inline:auto}
+
+.quick-schedule-fields{grid-template-columns:repeat(2,minmax(0,1fr))}.date-fields{flex-wrap:wrap}.date-fields label{flex:1 1 120px}
