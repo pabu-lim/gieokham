@@ -189,3 +189,23 @@ body.touch-reordering,body.touch-reordering *{user-select:none!important;-webkit
 .main-grid:not(.is-home):not(.has-detail)>.list-section{width:100%;max-width:1120px;margin-inline:auto}
 
 .quick-schedule-fields{grid-template-columns:repeat(2,minmax(0,1fr))}.date-fields{flex-wrap:wrap}.date-fields label{flex:1 1 120px}
+
+/* One cohesive date selector shared by quick capture and the editor. */
+.schedule-card{padding:16px;border:1px solid #e3e8f1;border-radius:12px;background:#f8faff;margin-bottom:18px}
+.schedule-card-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:14px;font-weight:600;color:#34445e;margin-bottom:14px}
+.schedule-summary{font-size:12px;font-weight:400;color:#8995a8}
+.schedule-switches{display:flex;flex-wrap:wrap;gap:12px 24px}
+.schedule-switch{position:relative;display:inline-flex;align-items:center;gap:9px;min-height:32px;font-size:14px;color:#52637d;cursor:pointer}
+.schedule-switch input{position:absolute;opacity:0;width:36px;height:24px;margin:0}
+.schedule-switch-track{width:32px;height:19px;border-radius:20px;background:#c9d2df;position:relative;transition:background .18s;flex-shrink:0}
+.schedule-switch-track:after{content:'';position:absolute;width:13px;height:13px;top:3px;left:3px;border-radius:50%;background:#fff;box-shadow:0 1px 3px #23334a26;transition:transform .18s}
+.schedule-switch input:checked+.schedule-switch-track{background:#527cdf}
+.schedule-switch input:checked+.schedule-switch-track:after{transform:translateX(13px)}
+.schedule-switch input:focus-visible+.schedule-switch-track{outline:2px solid #2458da;outline-offset:3px}
+.schedule-date-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:16px;padding-top:16px;border-top:1px solid #e5ebf5}
+.schedule-date-grid label{display:block;min-width:0;color:#61718a;font-size:13px}
+.schedule-date-grid label>span{color:#919bae;font-size:12px}
+.schedule-date-grid input{display:block;width:100%;min-width:0;max-width:100%;height:44px;margin-top:8px;padding:9px 10px;border:1px solid #dae2ee;border-radius:8px;background:#fff;color:#263247;font-size:14px;box-sizing:border-box}
+.schedule-repeat-field{display:flex;align-items:center;gap:16px;font-size:14px;color:#65728a}
+.schedule-repeat-field [data-slot=select-trigger]{flex:1;background:#fff}
+@media(max-width:380px){.schedule-card{padding:12px}.schedule-date-grid{gap:8px}.schedule-date-grid input{padding:8px 4px;font-size:13px}}
