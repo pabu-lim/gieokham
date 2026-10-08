@@ -266,3 +266,15 @@ body.touch-reordering,body.touch-reordering *{user-select:none!important;-webkit
 .editor>label,.schedule-repeat-field{transition:background-color .2s,border-color .2s}
 @media(max-width:600px){.quick-options>div{padding:3px 5px}}
 @media(prefers-reduced-motion:reduce){.quick-composer .quick-entry,.quick-options>div,.editor>label,.schedule-repeat-field{transition:none}}
+
+/* Filled fields use a fine top accent instead of a colored surface. */
+:root{--filled-accent:#c2d2ed}
+.schedule-card,.editor>label,.schedule-repeat-field{background:#fff}
+.schedule-card.is-enabled,.editor>label.has-value,.schedule-repeat-field.has-value{background:#fff;border-color:#e3e8f1;box-shadow:inset 0 2px 0 var(--filled-accent)}
+.quick-composer .quick-entry.has-value{background:#fff;border-color:transparent;box-shadow:inset 0 2px 0 var(--filled-accent)}
+.quick-options>div{background:#fff;border-color:#e3e8f1;padding:7px 9px}
+.quick-options>div.has-value{background:#fff;border-color:#e3e8f1;box-shadow:inset 0 2px 0 var(--filled-accent)}
+.quick-options [data-slot=select-trigger]{border-color:transparent;background:transparent;box-shadow:none}
+.quick-options [data-slot=select-trigger]:hover{background:#f7f9fc;border-color:transparent}
+.schedule-card.is-enabled .schedule-date-grid input{background:#fff;border-color:#dce4ef}
+@media(max-width:600px){.quick-options>div{padding:5px 7px}}
