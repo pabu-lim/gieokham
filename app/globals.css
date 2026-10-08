@@ -278,3 +278,13 @@ body.touch-reordering,body.touch-reordering *{user-select:none!important;-webkit
 .quick-options [data-slot=select-trigger]:hover{background:#f7f9fc;border-color:transparent}
 .schedule-card.is-enabled .schedule-date-grid input{background:#fff;border-color:#dce4ef}
 @media(max-width:600px){.quick-options>div{padding:5px 7px}}
+
+/* Warm, visible filled-state accents with a white editing surface. */
+:root{--filled-accent:#e9ac78;--filled-dot:#d99053}
+.schedule-card.is-enabled,.editor>label.has-value,.schedule-repeat-field.has-value,.quick-composer .quick-entry.has-value,.quick-options>div.has-value{box-shadow:inset 0 3px 0 var(--filled-accent)}
+.editor>label.has-value:before,.quick-options>div.has-value>span:first-child:after,.schedule-repeat-field.has-value>span:first-child:after,.schedule-card.is-enabled .schedule-card-heading>span:first-child:after{content:'';display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--filled-dot);vertical-align:middle;flex-shrink:0}
+.editor>label.has-value:before{margin-right:7px}
+.quick-options>div.has-value>span:first-child:after,.schedule-repeat-field.has-value>span:first-child:after,.schedule-card.is-enabled .schedule-card-heading>span:first-child:after{margin-left:7px}
+.quick-composer .quick-entry{position:relative}
+.quick-composer .quick-entry.has-value:after{content:'';position:absolute;right:9px;top:9px;width:6px;height:6px;border-radius:50%;background:var(--filled-dot);pointer-events:none}
+@media(max-width:600px){.quick-options>div>span{width:59px}}
