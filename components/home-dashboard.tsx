@@ -3,7 +3,7 @@ import {useEffect,useState} from 'react';
 import {ArrowUpRight,Clock3,NotebookPen,Sun} from 'lucide-react';
 import {Checkbox} from '@/components/ui/checkbox';
 import {attentionItems} from '@/lib/home';
-import {inCategory,categoryPath,categoryTree,isToday,localDate,type Data,type Task} from '@/lib/memory';
+import {scheduleLabel,inCategory,categoryPath,categoryTree,isToday,localDate,type Data,type Task} from '@/lib/memory';
 export function HomeDashboard({data,onOpen,onDone,onNavigate}:{data:Data;onOpen:(t:Task)=>void;onDone:(t:Task)=>void;onNavigate:(view:string)=>void}){
  const [now,setNow]=useState(()=>new Date()),[expanded,setExpanded]=useState(false);
  useEffect(()=>{const timer=setInterval(()=>setNow(new Date()),30000);return()=>clearInterval(timer)},[]);
@@ -14,7 +14,7 @@ export function HomeDashboard({data,onOpen,onDone,onNavigate}:{data:Data;onOpen:
   <button className="home-memory-content" onClick={()=>onOpen(t)}>
    {label&&<span className={'home-status '+tone}>{label}</span>}
    <span className="home-memory-title">{t.text}</span>
-   <span className="home-memory-meta">{t.category||'미분류'}{t.date&&<> · {t.date===today?'오늘':t.date.slice(5).replace('-','.')} {t.time}</>}{t.notes?.trim()&&<> · 추가 메모</>}</span>
+   <span className="home-memory-meta">{t.category||'미분류'}{t.date&&<> · {scheduleLabel(t,today)}</>}{t.notes?.trim()&&<> · 추가 메모</>}</span>
   </button><span className={'priority p'+t.priority}>{t.priority}</span>
  </article>;
  return <div className="home-dashboard">
