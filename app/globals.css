@@ -250,3 +250,19 @@ body.touch-reordering,body.touch-reordering *{user-select:none!important;-webkit
  .editor>label{padding:14px}
 }
 @media(prefers-reduced-motion:reduce){.schedule-card{transition:none}}
+
+/* A restrained, consistent tint for filled or enabled fields. */
+:root{--field-active-bg:#f5f8fe;--field-active-border:#dce5f4}
+.schedule-card.is-enabled,.editor>label.has-value,.schedule-repeat-field.has-value{background:var(--field-active-bg);border-color:var(--field-active-border)}
+.schedule-card.is-enabled .schedule-card-heading{color:#43546d}
+.schedule-card.is-enabled .schedule-summary{color:#7b8ba4}
+.schedule-card.is-enabled .schedule-switch{color:#52637d}
+.schedule-card.is-enabled .schedule-date-grid{border-top-color:#e5ebf5}
+.schedule-card.is-enabled .schedule-date-grid input,.editor>label.has-value textarea,.editor>label.has-value [data-slot=select-trigger],.schedule-repeat-field.has-value [data-slot=select-trigger]{border-color:#dce4ef}
+.quick-composer .quick-entry{border:1px solid transparent;border-radius:14px 14px 0 0;transition:background-color .2s,border-color .2s}
+.quick-composer .quick-entry.has-value{background:var(--field-active-bg);border-color:var(--field-active-border)}
+.quick-options>div{padding:3px 7px;border:1px solid transparent;border-radius:10px;transition:background-color .2s,border-color .2s}
+.quick-options>div.has-value{background:var(--field-active-bg);border-color:var(--field-active-border)}
+.editor>label,.schedule-repeat-field{transition:background-color .2s,border-color .2s}
+@media(max-width:600px){.quick-options>div{padding:3px 5px}}
+@media(prefers-reduced-motion:reduce){.quick-composer .quick-entry,.quick-options>div,.editor>label,.schedule-repeat-field{transition:none}}
