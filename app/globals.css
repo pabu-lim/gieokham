@@ -293,3 +293,8 @@ body.touch-reordering,body.touch-reordering *{user-select:none!important;-webkit
 .repeat-options [data-slot=select-trigger]{width:100%;margin-top:0;border:1px solid #dce4ef;border-radius:8px;background:#fff;min-height:44px;color:#263247;box-shadow:none}
 .repeat-card .weekdays{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
 .repeat-card .weekdays label{display:flex;align-items:center;justify-content:center;gap:5px;min-width:44px;min-height:40px;font-size:13px;color:#61718a}
+
+/* Focus and filled accents share the same quick-entry boundary. */
+.quick-composer:has(.quick-entry textarea:focus){border-color:#dce4ef;box-shadow:0 4px 18px #253b6006}
+.quick-composer .quick-entry:has(textarea:focus){border-color:#547fe4}
+.quick-composer .quick-entry textarea:focus-visible{outline:none;box-shadow:none}
