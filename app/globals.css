@@ -298,3 +298,7 @@ body.touch-reordering,body.touch-reordering *{user-select:none!important;-webkit
 .quick-composer:has(.quick-entry textarea:focus){border-color:#dce4ef;box-shadow:0 4px 18px #253b6006}
 .quick-composer .quick-entry:has(textarea:focus){border-color:#547fe4}
 .quick-composer .quick-entry textarea:focus-visible{outline:none;box-shadow:none}
+
+/* Draw the filled accent over the actual focus border, including its corners. */
+.quick-composer .quick-entry.has-value,.quick-composer .quick-entry.has-value:has(textarea:focus){box-shadow:none;border-top-color:transparent}
+.quick-composer .quick-entry.has-value:before{content:'';position:absolute;inset:-1px -1px auto;height:16px;border:3px solid var(--filled-accent);border-bottom:0;border-radius:14px 14px 0 0;box-sizing:border-box;pointer-events:none;z-index:1}
