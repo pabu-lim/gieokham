@@ -288,3 +288,8 @@ body.touch-reordering,body.touch-reordering *{user-select:none!important;-webkit
 .quick-composer .quick-entry{position:relative}
 .quick-composer .quick-entry.has-value:after{content:'';position:absolute;right:9px;top:9px;width:6px;height:6px;border-radius:50%;background:var(--filled-dot);pointer-events:none}
 @media(max-width:600px){.quick-options>div>span{width:59px}}
+
+.repeat-options{margin-top:16px;padding-top:16px;border-top:1px solid #e5ebf5}
+.repeat-options [data-slot=select-trigger]{width:100%;margin-top:0;border:1px solid #dce4ef;border-radius:8px;background:#fff;min-height:44px;color:#263247;box-shadow:none}
+.repeat-card .weekdays{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.repeat-card .weekdays label{display:flex;align-items:center;justify-content:center;gap:5px;min-width:44px;min-height:40px;font-size:13px;color:#61718a}
