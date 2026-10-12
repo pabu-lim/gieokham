@@ -3,7 +3,7 @@
 import assert from 'node:assert/strict';
 import {test} from 'node:test';
 await import(process.env.FAKE_INDEXEDDB_MODULE||'fake-indexeddb/auto');
-const {createAccountCache,clearEncryptedCache,removeLegacyMemoCopies}=await import('../lib/encrypted-cache.ts');
+const {createAccountCache,clearEncryptedCache,removeLegacyMemoCopies,expireAccountCache,CACHE_TTL_MS}=await import('../lib/encrypted-cache.ts');
 async function entry(uid,update){
  const db=await new Promise((ok,no)=>{const r=indexedDB.open('gieokham-encrypted-cache',1);r.onsuccess=()=>ok(r.result);r.onerror=()=>no(r.error)});
  return new Promise((ok,no)=>{const tx=db.transaction('accounts',update?'readwrite':'readonly');let result;const r=tx.objectStore('accounts').get(uid);r.onsuccess=()=>{result=r.result;if(update)tx.objectStore('accounts').put(update(result))};tx.oncomplete=()=>{db.close();ok(result)};tx.onabort=()=>{db.close();no(tx.error)}});
@@ -48,4 +48,41 @@ test('encrypted cache lifecycle, isolation and logout races',async()=>{
 test('legacy plaintext cleanup leaves unrelated preferences intact',()=>{
  globalThis.localStorage={'gieokham-v1':'plain','gieokham-v1:a':'plain',theme:'light',removeItem(k){delete this[k]}};
  removeLegacyMemoCopies();assert.equal(localStorage['gieokham-v1'],undefined);assert.equal(localStorage['gieokham-v1:a'],undefined);assert.equal(localStorage.theme,'light');
+});
+
+test('fixed 24-hour expiration, legacy entries and server-only recreation',async()=>{
+ await clearEncryptedCache();
+ const realNow=Date.now;let now=realNow();Date.now=()=>now;
+ try{
+  assert.equal(await createAccountCache('ttl',()=>true,false),null);
+  assert.equal(await entry('ttl'),undefined);
+  const session=await createAccountCache('ttl',()=>true);
+  await session.write({text:'server snapshot'});
+  const original=await entry('ttl');
+  now+=CACHE_TTL_MS-1;
+  await session.write({text:'updated'});
+  assert.equal((await entry('ttl')).createdAt,original.createdAt);
+  assert.deepEqual(await (await createAccountCache('ttl',()=>true,false)).read(),{text:'updated'});
+  now++;
+  assert.equal(await session.read(),null);
+  assert.equal(await entry('ttl'),undefined);
+  await session.write({text:'late write'});
+  assert.equal(await entry('ttl'),undefined);
+  assert.equal(await createAccountCache('ttl',()=>true,false),null);
+  const replacement=await createAccountCache('ttl',()=>true,true);
+  assert.equal(await replacement.read(),null);
+  assert.notEqual((await entry('ttl')).token,original.token);
+  assert.equal(replacement.expiresAt,now+CACHE_TTL_MS);
+  // Legacy entries without a creation timestamp are discarded, never decrypted.
+  await entry('ttl',v=>{delete v.createdAt;return v});
+  assert.equal(await createAccountCache('ttl',()=>true,false),null);
+  assert.equal(await entry('ttl'),undefined);
+  await createAccountCache('timer',()=>true);
+  now+=CACHE_TTL_MS;
+  assert.equal(await expireAccountCache('timer'),true);
+  assert.equal(await entry('timer'),undefined);
+  // Clock rollback also invalidates the entry rather than extending its life.
+  await createAccountCache('clock',()=>true);now--;
+  assert.equal(await createAccountCache('clock',()=>true,false),null);
+ }finally{Date.now=realNow;await clearEncryptedCache()}
 });
