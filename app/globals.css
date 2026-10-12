@@ -333,3 +333,10 @@ body.touch-reordering,body.touch-reordering *{user-select:none!important;-webkit
 
 .cache-status{margin:0 24px;padding:10px 14px;border-radius:10px;background:#f1f6fc;color:#526a8b;font-size:13px;line-height:1.6}
 fieldset.editor{border:0;margin:0;min-width:0}fieldset.editor:disabled{opacity:.75}
+
+.task-trailing{display:flex;flex-direction:column;align-items:flex-end;gap:7px;flex-shrink:0;max-width:110px}
+.task-time{font-size:11px;line-height:1.4;color:#7d899b;white-space:nowrap;font-weight:400}
+.task-notes-preview{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:6px;color:#7d899b;font-size:13px;line-height:1.5}
+.memory-timestamps{display:flex;flex-direction:column;gap:5px;margin-top:20px;color:#7d899b;font-size:12px;line-height:1.6}
+.memory-timestamps>span{display:flex;justify-content:space-between;gap:12px}
+@media(max-width:600px){.task-trailing{max-width:95px}.task-time{font-size:10px}.task-meta{gap:7px;font-size:12px}}
