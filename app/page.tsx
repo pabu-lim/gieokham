@@ -13,7 +13,7 @@ import {Empty,EmptyHeader,EmptyTitle,EmptyDescription} from '@/components/ui/emp
 import {Toaster} from '@/components/ui/sonner';
 import {toast} from 'sonner';
 import {scheduleError,scheduleLabel,categoryDropEdge,moveCategoryTree,type CategoryDropEdge,categoryPath,categoryTree,inCategory,saveCategory,deleteCategory,empty,initialAccountData,task,demo,validate,reorderCategories,reorderTasks,priorityCompare,customTasks,insertTask,localDate,occurrence,isToday,toggle,type Data,type Task} from '@/lib/memory';
-import {createAccountCache,clearEncryptedCache,removeLegacyMemoCopies} from '@/lib/encrypted-cache';
+import {createAccountCache,clearEncryptedCache,removeLegacyMemoCopies,expireAccountCache} from '@/lib/encrypted-cache';
 import {auth,db,googleProvider} from '@/lib/firebase';
 import {InstallMenuButton} from '@/components/install-app';
 import {setReorderDragImage} from '@/lib/reorder-preview';
@@ -74,6 +74,9 @@ function endDetailSwipe(e:React.TouchEvent){
 
 const [real,setReal]=useState<Data>(empty),[sample,setSample]=useState<Data|null>(null),[ready,setReady]=useState(false),[error,setError]=useState(''),[view,setView]=useState('home'),[query,setQuery]=useState(''),[sort,setSort]=useState('custom'),[input,setInput]=useState(''),[selected,setSelected]=useState(''),[draft,setDraft]=useState<Task|null>(null),[settings,setSettings]=useState(false),[catDialog,setCatDialog]=useState(false),[catName,setCatName]=useState(''),[rename,setRename]=useState<string|null>(null),[confirmation,setConfirmation]=useState<{title:string;body:string;action:()=>void;actionLabel?:string;destructive?:boolean}|null>(null),[today,setToday]=useState(localDate),[backupText,setBackupText]=useState(''),[restoreText,setRestoreText]=useState(''),[draggedCategory,setDraggedCategory]=useState<string|null>(null),[categoryDrop,setCategoryDrop]=useState<{name:string;edge:CategoryDropEdge}|null>(null),[user,setUser]=useState<User|null>(null),[authReady,setAuthReady]=useState(false),[signingIn,setSigningIn]=useState(false),[syncing,setSyncing]=useState(false);const dragCategoryRef=useRef<string|null>(null);const dragTaskRef=useRef<string|null>(null);const [draggedTask,setDraggedTask]=useState<string|null>(null),[taskDrop,setTaskDrop]=useState<{id:string;edge:'before'|'after'}|null>(null);
 const [serverReady,setServerReady]=useState(false);
+const [cacheCycle,setCacheCycle]=useState(0);
+const cacheDeadline=useRef(0);
+const preserveDraftOnRefresh=useRef(false);
 const access=useRef({uid:'',writable:false,epoch:0});
 const cleanup=useRef<Promise<void>>(Promise.resolve());
 const cacheWarning=useRef(false);
@@ -98,20 +101,38 @@ useEffect(()=>{
   const previous=access.current.uid;
   access.current={uid:next?.uid||'',writable:false,epoch:access.current.epoch+1};
   if(!next||previous&&previous!==next.uid)cleanup.current=clearEncryptedCache().catch(warnCache);
-  setUser(next);setAuthReady(true);setReady(false);setServerReady(false);setError('');setReal(empty());setSample(null);setSelected('');setDraft(null);setSyncing(false);setInput('');setBackupText('');setRestoreText('');setSettings(false);setConfirmation(null);setCatDialog(false);
+  cacheDeadline.current=0;preserveDraftOnRefresh.current=false;setUser(next);setAuthReady(true);setReady(false);setServerReady(false);setError('');setReal(empty());setSample(null);setSelected('');setDraft(null);setSyncing(false);setInput('');setBackupText('');setRestoreText('');setSettings(false);setConfirmation(null);setCatDialog(false);
  });
  return()=>{clearInterval(timer);stop();access.current.epoch++;};
 },[]);
 useEffect(()=>{
  if(!user)return;
  const epoch=access.current.epoch;
- let initializing=false,disposed=false,receivedSnapshot=false;
+ let initializing=false,disposed=false,receivedSnapshot=false,expiring=false;
+ let cacheSession:Awaited<ReturnType<typeof createAccountCache>>=null;
+ let expiryTimer:ReturnType<typeof setTimeout>|undefined;
  const active=()=>!disposed&&access.current.epoch===epoch&&access.current.uid===user.uid;
- const cache=cleanup.current.then(()=>active()?createAccountCache(user.uid,active):null).then(async session=>{
+ const expire=async()=>{
+  if(!active()||expiring||!cacheDeadline.current||Date.now()<cacheDeadline.current)return;
+  expiring=true;cacheSession=null;preserveDraftOnRefresh.current=access.current.writable;access.current.writable=false;
+  setServerReady(false);setReady(false);setReal(empty());
+  try{await expireAccountCache(user.uid)}catch{if(active())warnCache()}
+  if(active()){cacheDeadline.current=0;setCacheCycle(v=>v+1)}
+ };
+ const arm=(session:Awaited<ReturnType<typeof createAccountCache>>)=>{
+  cacheSession=session;cacheDeadline.current=session?.expiresAt||0;
+  clearTimeout(expiryTimer);
+  if(session)expiryTimer=setTimeout(()=>void expire(),Math.max(0,session.expiresAt-Date.now()));
+ };
+ const onResume=()=>{if(document.visibilityState==='visible')void expire()};
+ document.addEventListener('visibilitychange',onResume);window.addEventListener('focus',onResume);
+ const cache=cleanup.current.then(()=>active()?createAccountCache(user.uid,active,false):null).then(async session=>{
   if(!active())return null;
+  arm(session);
   try{const saved=await session?.read();if(saved&&active()&&!receivedSnapshot){setReal(validate(saved));setReady(true)}}catch{warnCache()}
   return session;
  }).catch(()=>{if(active())warnCache();return null});
+ let cacheWrites:Promise<void>=Promise.resolve();
  const ref=doc(db,'users',user.uid,'app','state');
  const stop=onSnapshot(ref,{includeMetadataChanges:true},snap=>{
   if(!active())return;
@@ -130,18 +151,27 @@ useEffect(()=>{
   }
   try{
    const next=validate(snap.data().data);
-   if(!access.current.writable){setSelected('');setDraft(null)}
+   if(!access.current.writable&&!preserveDraftOnRefresh.current){setSelected('');setDraft(null)}
+   preserveDraftOnRefresh.current=false;
    setReal(next);setError('');setReady(true);setServerReady(true);access.current.writable=true;
-   void cache.then(session=>{if(active())return session?.write(next)}).catch(()=>{if(active())warnCache()});
+   // Serialize cache creation and writes from server-confirmed snapshots only.
+   cacheWrites=cacheWrites.catch(()=>{}).then(async()=>{
+    await cache;
+    if(!active()||expiring)return;
+    if(cacheSession&&Date.now()>=cacheSession.expiresAt){await expire();return}
+    if(!cacheSession){const session=await createAccountCache(user.uid,active,true);if(!active()||expiring)return;arm(session)}
+    await cacheSession?.write(next);
+   });
+   void cacheWrites.catch(()=>{if(active())warnCache()});
   }catch{access.current.writable=false;setServerReady(false);setError('클라우드 기록을 읽을 수 없습니다. 새로고침해 주세요.');setReady(true)}
  },()=>{if(active()){access.current.writable=false;setServerReady(false);setError('최신 기록을 확인하지 못했습니다. 인터넷 연결을 확인하고 새로고침해 주세요. 이전 기록은 읽기 전용입니다.');setReady(true)}});
- return()=>{disposed=true;stop();};
-},[user]);
+ return()=>{disposed=true;stop();clearTimeout(expiryTimer);document.removeEventListener('visibilitychange',onResume);window.removeEventListener('focus',onResume)};
+},[user,cacheCycle]);
 function commit(next:Data,recovery=false){
  const c=current.current;
  if(c.sample){setSample(next);return true}
  if(!c.user||access.current.uid!==c.user.uid){toast.error('먼저 Google 계정으로 로그인하세요.');return false}
- if(!access.current.writable||!c.ready||c.error&&!recovery){toast.error('최신 기록을 확인한 뒤 수정할 수 있어요.');return false}
+ if((cacheDeadline.current>0&&Date.now()>=cacheDeadline.current)||!access.current.writable||!c.ready||c.error&&!recovery){toast.error('최신 기록을 확인한 뒤 수정할 수 있어요.');return false}
  try{
   const checked=validate(next),epoch=access.current.epoch;setReal(checked);setSyncing(true);
   void setDoc(doc(db,'users',c.user.uid,'app','state'),{data:checked,updatedAt:serverTimestamp()}).then(()=>{
@@ -221,7 +251,7 @@ return <SidebarProvider style={{'--sidebar-width':'clamp(250px, calc(15.625vw + 
 <div className="task-list">{filtered.length===0?<Empty className="empty-state"><EmptyHeader><Inbox size={36}/><EmptyTitle>{query?'검색 결과가 없어요':view==='all'?'첫 번째 기억을 남겨보세요':'아직 항목이 없어요'}</EmptyTitle><EmptyDescription>{query?'다른 단어로 검색해 보세요.':'위 입력창에 떠오른 내용을 적어보세요.'}</EmptyDescription></EmptyHeader>{!data.tasks.length&&<button className="outline" onClick={()=>setSample(demo())}>예시로 먼저 체험하기</button>}</Empty>:filtered.map(t=><article className={'task-row '+(selected===t.id?'selected ':'')+(t.done?'is-done ':'')+(draggedTask===t.id?'task-dragging ':'')+(sort==='custom'&&taskDrop?.id===t.id?'task-drop-'+taskDrop.edge:'')} key={t.id} data-touch-reorder={sort==='custom'?'task':undefined} data-reorder-id={t.id} onDragOver={e=>{if(sort!=='custom'||!dragTaskRef.current)return;e.preventDefault();e.dataTransfer.dropEffect='move';if(dragTaskRef.current===t.id){setTaskDrop(null);return}const rect=e.currentTarget.getBoundingClientRect();setTaskDrop({id:t.id,edge:e.clientY<rect.top+rect.height/2?'before':'after'})}} onDragLeave={e=>{if(!e.currentTarget.contains(e.relatedTarget as Node|null))setTaskDrop(prev=>prev?.id===t.id?null:prev)}} onDrop={e=>{const source=dragTaskRef.current;if(sort!=='custom'||!source)return;e.preventDefault();const rect=e.currentTarget.getBoundingClientRect();moveTask(source,t.id,e.clientY<rect.top+rect.height/2?'before':'after');endTaskDrag()}}>{sort==='custom'&&<button type="button" className="task-grip" draggable aria-label={t.text+' 순서 이동'} title="가운데에 놓으면 하위로 이동 · 위아래에 놓으면 순서 이동 · Alt+위/아래 화살표" onDragStart={e=>{if(sort!=='custom'){e.preventDefault();return}setReorderDragImage(e);dragTaskRef.current=t.id;setDraggedTask(t.id);e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain',t.id)}} onDragEnd={endTaskDrag} onKeyDown={e=>{if(e.altKey&&(e.key==='ArrowUp'||e.key==='ArrowDown')){e.preventDefault();const index=filtered.findIndex(x=>x.id===t.id),up=e.key==='ArrowUp';const target=filtered[index+(up?-1:1)];if(target)moveTask(t.id,target.id,up?'before':'after')}}}><GripVertical size={16}/></button>}<Checkbox aria-label={t.text+' 완료'} checked={t.repeat==='none'?t.done:t.completed.includes(today)} disabled={t.repeat!=='none'&&!isToday(t,today)&&!t.completed.includes(today)} onCheckedChange={()=>changeDone(t)}/><button className="task-body" onClick={()=>open(t)}><span className="task-title">{t.text}</span><span className="task-meta">{t.notes?.trim()&&<span title="추가 메모 있음"><NotebookPen size={14}/><span className="sr-only">추가 메모 있음</span></span>}<span>{t.category?'# '+t.category:'미분류'}</span>{dateLabel(t)&&<span className={t.repeat==='none'&&!!t.date&&(t.endDate||t.date)<today&&!t.done?'overdue':''}>{dateLabel(t)}</span>}{t.repeat!=='none'&&<span><Repeat2 size={12}/>{t.repeat==='daily'?'매일':'요일 반복'}</span>}{view==='done'&&t.repeat!=='none'&&<span>완료 {t.completed.length}회</span>}</span></button><span className={'priority p'+t.priority}>{t.priority}</span></article>)}</div><div className="list-footer">{active.length}개의 기억 · {active.filter(t=>isToday(t,today)).length}개의 오늘 할 일</div></>}</section>
 <aside className="detail-placeholder"><div className="detail-top">상세 정보 <NotebookPen size={16}/></div><div className="detail-empty"><NotebookPen size={31}/><h2>기억을 조금 더 구체적으로</h2><p>목록에서 항목을 선택하면<br/>내용과 일정을 수정할 수 있어요.</p></div><div className="small-tip"><span>가볍게 시작하세요</span><p>완벽하게 분류하지 않아도 괜찮아요.<br/>일단 기록하는 것으로 충분해요.</p></div></aside></div></main>
 <Sheet modal={false} open={!!selected&&!!draft} onOpenChange={o=>{if(!o)closeDetail()}}><SheetContent className="detail-sheet" onTouchStart={startDetailSwipe} onTouchMove={moveDetailSwipe} onTouchEnd={endDetailSwipe} onTouchCancel={()=>{detailSwipe.current=null}} showCloseButton={false} onInteractOutside={e=>e.preventDefault()}><div className="detail-top"><SheetTitle>상세 정보{isMobile&&<span className="swipe-close-hint">오른쪽으로 밀어 닫기 →</span>}</SheetTitle><SheetClose aria-label="상세 닫기"><X size={19}/></SheetClose></div><SheetDescription className="sr-only">내용과 일정을 편집한 뒤 변경 저장을 누르세요.</SheetDescription>{draft&&<fieldset className="editor" disabled={!sample&&!serverReady}><label className={draft.text.trim()?'has-value':''}>내용<textarea aria-label="내용" maxLength={10000} value={draft.text} onChange={e=>setDraft({...draft,text:e.target.value})}/></label><label className={draft.notes?.trim()?'has-value':''}>추가 메모 <span className="optional-label">(선택)</span><textarea aria-label="추가 메모" placeholder="설명, 준비할 것, 링크 등을 자유롭게 적어보세요." maxLength={10000} value={draft.notes||''} onChange={e=>setDraft({...draft,notes:e.target.value})}/></label><label className="has-value">중요도<Choice label="중요도" value={draft.priority} onChange={v=>setDraft({...draft,priority:v as Task['priority']})} options={[['최상','최상 · 긴급해요'],['상','상 · 중요해요'],['중','중 · 보통이에요'],['하','하 · 여유 있어요'],['최하','최하 · 단순 기록용이에요']]}/></label><label className="has-value">카테고리<Choice label="카테고리" value={draft.category||'__none'} onChange={v=>setDraft({...draft,category:v==='__none'?'':v})} options={[['__none','미분류'],...categoryTree(data).map(c=>[c,categoryPath(data,c).join(' › ')] as [string,string])]}/></label><ScheduleDates label="메모 일정" value={draft} onChange={v=>setDraft({...draft,...v})}/><RepeatSettings label="메모 반복" value={draft} onChange={v=>setDraft({...draft,...v,done:v.repeat==='none'?draft.done:false})}/><button className="primary save" onClick={save}>변경 저장</button>{draft.completed.length>0&&<div className="history"><h3>반복 완료 기록</h3>{[...draft.completed].sort().reverse().map(d=><div key={d}>{d}<button onClick={()=>{const live=data.tasks.find(t=>t.id===draft.id);if(live)changeDone(live,d)}}>완료 취소</button></div>)}</div>}<button className="delete" onClick={()=>setConfirmation({title:'이 기록을 삭제할까요?',body:'삭제한 기록과 반복 완료 이력은 복구할 수 없습니다.',action:()=>{if(commit({...data,tasks:data.tasks.filter(t=>t.id!==draft.id)})){setSelected('');setDraft(null);toast.success('삭제했습니다')}}})}><Trash2 size={16}/>기록 삭제</button></fieldset>}</SheetContent></Sheet>
-<Dialog open={settings} onOpenChange={o=>{setSettings(o);if(!o){setBackupText('');setRestoreText('')}}}><DialogContent className="backup-dialog" showCloseButton={false}><DialogTitle>설정 및 백업</DialogTitle><DialogDescription>기록을 안전하게 보관하세요.</DialogDescription><p className="storage-info"><Cloud size={17}/><span><strong>{user.email}</strong><br/>기록은 이 Google 계정의 Firebase 저장소에 동기화됩니다. 백업 파일을 따로 보관하면 실수로 삭제했을 때 복원할 수 있습니다.<br/>빠른 시작을 위해 이 브라우저에 암호화된 사본을 보관합니다. 로그아웃하면 사본과 암호화 키를 삭제합니다.</span></p>{sample&&<p className="overdue">현재 체험 데이터의 백업을 관리하고 있습니다.</p>}<details className="backup-methods"><summary>백업하기(내보내기)</summary><div className="backup-method-list"><button className="outline" onClick={copyBackup}>텍스트(JSON)로 복사하기</button><button className="outline" onClick={exportData}>텍스트 파일로 저장하기</button></div>{backupText&&<section className="backup-fallback"><label htmlFor="backup-content">백업 내용(JSON)</label><textarea id="backup-content" aria-label="백업 내용" readOnly value={backupText} onFocus={e=>e.currentTarget.select()}/></section>}</details><details className="backup-methods"><summary>백업 내용 가져오기</summary><div className="backup-method-list"><details className="backup-paste"><summary>텍스트(JSON)로 붙여넣기</summary><div className="backup-fallback"><label htmlFor="restore-content" className="sr-only">복원할 백업 내용</label><textarea id="restore-content" placeholder="복사해 둔 JSON 백업 내용을 붙여넣으세요." value={restoreText} onChange={e=>setRestoreText(e.target.value)} maxLength={20*1024*1024}/><button className="outline" disabled={!restoreText.trim()} onClick={()=>stageRestore(restoreText)}>붙여넣은 백업 가져오기</button></div></details><button className="outline" onClick={()=>file.current?.click()}>백업 파일 불러오기</button></div></details><input ref={file} type="file" accept=".json,.txt,application/json,text/plain" className="sr-only" aria-label="백업 파일" onChange={e=>importData(e.target.files?.[0])}/><button className="primary" onClick={()=>{setSettings(false);setBackupText('');setRestoreText('')}}>닫기</button></DialogContent></Dialog>
+<Dialog open={settings} onOpenChange={o=>{setSettings(o);if(!o){setBackupText('');setRestoreText('')}}}><DialogContent className="backup-dialog" showCloseButton={false}><DialogTitle>설정 및 백업</DialogTitle><DialogDescription>기록을 안전하게 보관하세요.</DialogDescription><p className="storage-info"><Cloud size={17}/><span><strong>{user.email}</strong><br/>기록은 이 Google 계정의 Firebase 저장소에 동기화됩니다. 백업 파일을 따로 보관하면 실수로 삭제했을 때 복원할 수 있습니다.<br/>빠른 시작을 위해 이 브라우저에 암호화된 사본을 보관합니다. 키 생성 후 24시간이 지나면 앱 실행·사용 중 만료를 확인해 키와 사본을 삭제하고, 서버의 최신 기록으로 다시 저장합니다. 메모를 수정해도 만료 시각은 연장되지 않습니다. 로그아웃하면 즉시 삭제합니다.</span></p>{sample&&<p className="overdue">현재 체험 데이터의 백업을 관리하고 있습니다.</p>}<details className="backup-methods"><summary>백업하기(내보내기)</summary><div className="backup-method-list"><button className="outline" onClick={copyBackup}>텍스트(JSON)로 복사하기</button><button className="outline" onClick={exportData}>텍스트 파일로 저장하기</button></div>{backupText&&<section className="backup-fallback"><label htmlFor="backup-content">백업 내용(JSON)</label><textarea id="backup-content" aria-label="백업 내용" readOnly value={backupText} onFocus={e=>e.currentTarget.select()}/></section>}</details><details className="backup-methods"><summary>백업 내용 가져오기</summary><div className="backup-method-list"><details className="backup-paste"><summary>텍스트(JSON)로 붙여넣기</summary><div className="backup-fallback"><label htmlFor="restore-content" className="sr-only">복원할 백업 내용</label><textarea id="restore-content" placeholder="복사해 둔 JSON 백업 내용을 붙여넣으세요." value={restoreText} onChange={e=>setRestoreText(e.target.value)} maxLength={20*1024*1024}/><button className="outline" disabled={!restoreText.trim()} onClick={()=>stageRestore(restoreText)}>붙여넣은 백업 가져오기</button></div></details><button className="outline" onClick={()=>file.current?.click()}>백업 파일 불러오기</button></div></details><input ref={file} type="file" accept=".json,.txt,application/json,text/plain" className="sr-only" aria-label="백업 파일" onChange={e=>importData(e.target.files?.[0])}/><button className="primary" onClick={()=>{setSettings(false);setBackupText('');setRestoreText('')}}>닫기</button></DialogContent></Dialog>
 <Dialog open={catDialog} onOpenChange={setCatDialog}><DialogContent showCloseButton={false}><DialogTitle>{rename?'카테고리 관리':'카테고리 추가'}</DialogTitle><DialogDescription>이름을 수정하거나 상위 카테고리를 선택해 위치를 옮기세요. ‘없음’을 선택하면 최상위로 이동합니다.</DialogDescription><input className="text-field" aria-label="카테고리 이름" maxLength={50} value={catName} onChange={e=>setCatName(e.target.value)} onCompositionStart={()=>catComposing.current=true} onCompositionEnd={()=>catComposing.current=false} onKeyDown={e=>{if(e.key==='Enter'&&!e.nativeEvent.isComposing&&!catComposing.current&&e.keyCode!==229){e.preventDefault();categorySave()}}}/><label className="category-parent-label">상위 카테고리<Choice label="상위 카테고리" value={catParent||'__none'} onChange={v=>setCatParent(v==='__none'?'':v)} options={[['__none','없음 (최상위)'],...categoryTree(data).filter(c=>!rename||!inCategory(data,c,rename)).map(c=>[c,categoryPath(data,c).join(' › ')] as [string,string])]}/></label>{rename&&<button className="outline" onClick={()=>{setCatParent(rename);setRename(null);setCatName('')}}>하위 카테고리 추가</button>}<div className="dialog-actions">{rename&&<button type="button" className="category-delete" onClick={()=>{const category=rename;const count=data.tasks.filter(t=>t.category===category).length;setCatDialog(false);setConfirmation({title:'카테고리를 삭제할까요?',body:`‘${category}’ 카테고리를 삭제합니다. 직접 포함된 메모 ${count}개는 미분류로 이동합니다. 하위 카테고리와 그 메모는 삭제하지 않고 최상위로 옮깁니다.`,action:()=>{const live=current.current.data;const next=deleteCategory(live,category);if(commit(next)){if(current.current.view==='cat:'+category)setView('uncategorized');setSelected('');setDraft(null);setRename(null);toast.success('카테고리를 삭제하고 메모를 미분류로 옮겼습니다')}}})}}><Trash2 size={16}/>삭제</button>}<button className="outline" onClick={()=>setCatDialog(false)}>취소</button><button className="primary" onClick={categorySave}>저장</button></div></DialogContent></Dialog>
 <AlertDialog open={!!confirmation} onOpenChange={o=>{if(!o)setConfirmation(null)}}><AlertDialogContent><AlertDialogTitle>{confirmation?.title}</AlertDialogTitle><AlertDialogDescription style={{whiteSpace:'pre-line'}}>{confirmation?.body}</AlertDialogDescription><AlertDialogFooter><AlertDialogCancel>취소</AlertDialogCancel><AlertDialogAction className={confirmation?.destructive?'confirm-leave':undefined} onClick={()=>{confirmation?.action();setConfirmation(null)}}>{confirmation?.actionLabel||'확인'}</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog></SidebarProvider>
 }
