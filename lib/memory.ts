@@ -1,4 +1,4 @@
-export type Task={id:string;text:string;notes?:string;priority:'최상'|'상'|'중'|'하'|'최하';category:string;date:string;endDate?:string;time:string;repeat:'none'|'daily'|'weekly';days:number[];done:boolean;completed:string[];created:number};
+export type Task={id:string;text:string;notes?:string;priority:'최상'|'상'|'중'|'하'|'최하';category:string;date:string;endDate?:string;time:string;repeat:'none'|'daily'|'weekly';days:number[];done:boolean;completed:string[];created:number;updated?:number};
 export type Data={version:1;categories:string[];categoryParents?:Record<string,string>;tasks:Task[];customOrder?:boolean};
 export const KEY='gieokham-v1';
 export const localDate=(d=new Date())=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
@@ -8,7 +8,7 @@ export function occurrence(t:Task,today=localDate()):string {if(t.repeat==='none
 export function isToday(t:Task,today=localDate()){if(t.repeat==='none')return !t.done&&!!t.date&&t.date<=today;return occurrence(t,today)===today}
 export function toggle(t:Task,today=localDate()):Task {if(t.repeat==='none')return {...t,done:!t.done};return {...t,completed:t.completed.includes(today)?t.completed.filter(x=>x!==today):[...t.completed,today]}}
 const validDate=(s:unknown)=>typeof s==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(s)&&localDate(new Date(s+'T12:00:00'))===s;
-export function validate(v:unknown):Data {const d=v as Data;if(!d||d.version!==1||(d.customOrder!==undefined&&typeof d.customOrder!=='boolean')||!Array.isArray(d.categories)||!Array.isArray(d.tasks)||d.tasks.length>50000||d.categories.some(c=>typeof c!=='string'||!c.trim()||c.length>50)||new Set(d.categories).size!==d.categories.length)throw Error('유효한 기억함 백업 파일이 아닙니다.');validateCategoryParents(d);const ids=new Set();for(const t of d.tasks){if(!t||typeof t.id!=='string'||ids.has(t.id)||typeof t.text!=='string'||!t.text.trim()||t.text.length>10000||(t.notes!==undefined&&(typeof t.notes!=='string'||t.notes.length>10000))||!['최상','상','중','하','최하'].includes(t.priority)||typeof t.category!=='string'||(t.category&&!d.categories.includes(t.category))||!(t.date===''||validDate(t.date))||(t.endDate!==undefined&&t.endDate!==''&&(!validDate(t.endDate)||!t.date||t.endDate<t.date))||typeof t.time!=='string'||!(t.time===''||/^([01]\d|2[0-3]):[0-5]\d$/.test(t.time))||(t.time&&!t.date)||!['none','daily','weekly'].includes(t.repeat)||!Array.isArray(t.days)||t.days.some(n=>!Number.isInteger(n)||n<0||n>6)||(t.repeat==='weekly'&&!t.days.length)||typeof t.done!=='boolean'||!Array.isArray(t.completed)||t.completed.some(s=>!validDate(s))||!Number.isFinite(t.created))throw Error('백업 항목의 형식이 올바르지 않습니다.');ids.add(t.id)}return structuredClone(d)}
+export function validate(v:unknown):Data {const d=v as Data;if(!d||d.version!==1||(d.customOrder!==undefined&&typeof d.customOrder!=='boolean')||!Array.isArray(d.categories)||!Array.isArray(d.tasks)||d.tasks.length>50000||d.categories.some(c=>typeof c!=='string'||!c.trim()||c.length>50)||new Set(d.categories).size!==d.categories.length)throw Error('유효한 기억함 백업 파일이 아닙니다.');validateCategoryParents(d);const ids=new Set();for(const t of d.tasks){if(!t||typeof t.id!=='string'||ids.has(t.id)||typeof t.text!=='string'||!t.text.trim()||t.text.length>10000||(t.notes!==undefined&&(typeof t.notes!=='string'||t.notes.length>10000))||!['최상','상','중','하','최하'].includes(t.priority)||typeof t.category!=='string'||(t.category&&!d.categories.includes(t.category))||!(t.date===''||validDate(t.date))||(t.endDate!==undefined&&t.endDate!==''&&(!validDate(t.endDate)||!t.date||t.endDate<t.date))||typeof t.time!=='string'||!(t.time===''||/^([01]\d|2[0-3]):[0-5]\d$/.test(t.time))||(t.time&&!t.date)||!['none','daily','weekly'].includes(t.repeat)||!Array.isArray(t.days)||t.days.some(n=>!Number.isInteger(n)||n<0||n>6)||(t.repeat==='weekly'&&!t.days.length)||typeof t.done!=='boolean'||!Array.isArray(t.completed)||t.completed.some(s=>!validDate(s))||!Number.isFinite(t.created)||(t.updated!==undefined&&(!Number.isFinite(t.updated)||t.updated<t.created||!Number.isFinite(new Date(t.updated).getTime()))))throw Error('백업 항목의 형식이 올바르지 않습니다.');ids.add(t.id)}return structuredClone(d)}
 export function demo():Data{const d=empty(),today=localDate();d.tasks=['샴푸 사기','지원서 제출','운동 20분','친구와 저녁','공부 내용 정리'].map((x,i)=>({...task(x),category:['일상','취업','운동','약속','공부'][i],priority:(['중','상','중','중','하'] as const)[i],date:i===0?'':today,time:i===3?'19:00':'',repeat:i===2?'daily':'none',created:Date.now()-i*1000}));return d}
 export function reorderCategories(categories:string[],source:string,target:string,edge:'before'|'after'):string[]{
  if(source===target||!categories.includes(source)||!categories.includes(target))return categories;
@@ -62,5 +62,26 @@ export function moveCategoryTree(d:Data,source:string,target:string,edge:Categor
 export function scheduleError(t:{date:string;endDate?:string}):string {return t.endDate&&(!t.date||t.endDate<t.date)?'종료일은 시작일과 같거나 이후로 선택하세요.':''}
 export function scheduleLabel(t:Task,today=localDate()):string {
  if(t.endDate&&t.date){const state=t.repeat==='none'&&!t.done?(t.endDate<today?'기한 지남 · ':t.date<=today?'진행 중 · ':''):'';return state+t.date.replaceAll('-','.')+' ~ '+t.endDate.replaceAll('-','.')+(t.time?' · '+t.time:'')}
- const d=occurrence(t,today);return d?(d===today?'오늘':d<today?'기한 지남 · '+d.slice(5).replace('-','.') :d.slice(5).replace('-','.'))+(t.time?' '+t.time:''):'';
+ const d=occurrence(t,today);if(!d)return '';
+ const days=Math.round((Date.parse(d+'T12:00:00Z')-Date.parse(today+'T12:00:00Z'))/86400000);
+ const label=days===0?'오늘':days===1?'내일':days<0&&!t.done?`${-days}일 지남`:d.slice(5).replace('-','.');
+ return label+(t.time?' '+t.time:'');
+}
+
+// Completion and ordering are deliberately excluded from editorial timestamps.
+export const editableMemory=(t:Task)=>JSON.stringify([t.text,t.notes||'',t.priority,t.category,t.date,t.endDate||'',t.time,t.repeat,[...t.days].sort()]);
+export function stampMemoryEdits(previous:Data,next:Data,now=Date.now()):Data{
+ const old=new Map(previous.tasks.map(t=>[t.id,t]));
+ return {...next,tasks:next.tasks.map(t=>{const before=old.get(t.id);return before&&editableMemory(before)!==editableMemory(t)?{...t,updated:Math.max(now,t.created)}:t})};
+}
+export function memoryTimeLabel(t:Task,now=Date.now()):string{
+ const stamp=t.updated??t.created,date=new Date(stamp),current=new Date(now);
+ if(!Number.isFinite(date.getTime()))return '';
+ const minutes=Math.max(0,Math.floor((now-stamp)/60000));
+ const yesterday=new Date(current);yesterday.setDate(yesterday.getDate()-1);
+ const label=minutes<1?'방금':minutes<60?`${minutes}분 전`:localDate(date)===localDate(current)?`${Math.floor(minutes/60)}시간 전`:localDate(date)===localDate(yesterday)?'어제':`${date.getFullYear()!==current.getFullYear()?date.getFullYear()+'년 ':''}${date.getMonth()+1}월 ${date.getDate()}일`;
+ return (t.updated!==undefined?'수정 ':'')+label;
+}
+export function exactMemoryTime(stamp:number):string{
+ const d=new Date(stamp);return Number.isFinite(d.getTime())?`${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`:'시간 정보 없음';
 }
