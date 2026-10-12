@@ -302,3 +302,14 @@ body.touch-reordering,body.touch-reordering *{user-select:none!important;-webkit
 /* Draw the filled accent over the actual focus border, including its corners. */
 .quick-composer .quick-entry.has-value,.quick-composer .quick-entry.has-value:has(textarea:focus){box-shadow:none;border-top-color:transparent}
 .quick-composer .quick-entry.has-value:before{content:'';position:absolute;inset:-1px -1px auto;height:16px;border:3px solid var(--filled-accent);border-bottom:0;border-radius:14px 14px 0 0;box-sizing:border-box;pointer-events:none;z-index:1}
+
+/* Schedule controls belong with the other capture options. */
+.quick-options{align-items:center}
+.composer-schedule-button{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:44px;padding:10px 12px;border:1px solid #dce4ef;border-radius:10px;background:#fff;color:#65728a;font-size:13px;white-space:nowrap;flex-shrink:0}
+.composer-schedule-button:hover,.composer-schedule-button[aria-expanded=true]{background:#eef3fa;color:#375e9e}
+.composer-schedule-button svg{transition:transform .18s}
+.composer-schedule-button svg.is-open{transform:rotate(45deg)}
+.composer-schedule-button .configured-dot{width:6px;height:6px;border-radius:50%;background:var(--filled-dot)}
+.quick-composer>.quick-schedule{margin:0;padding:16px;border-top:1px solid #e7ecf3;background:#fff}
+@media(max-width:600px){.quick-options{align-items:stretch}.composer-schedule-button{align-self:flex-start}.quick-composer>.quick-schedule{padding:12px}}
+@media(prefers-reduced-motion:reduce){.composer-schedule-button svg{transition:none}}
