@@ -330,3 +330,6 @@ body.touch-reordering,body.touch-reordering *{user-select:none!important;-webkit
 @keyframes mobile-menu-enter{from{transform:translate3d(-100%,0,0)}to{transform:translate3d(0,0,0)}}
 @keyframes mobile-menu-exit{from{transform:translate3d(0,0,0)}to{transform:translate3d(-100%,0,0)}}
 @media(prefers-reduced-motion:reduce){[data-sidebar=sidebar][data-mobile=true][data-state]{animation:none!important;will-change:auto}}
+
+.cache-status{margin:0 24px;padding:10px 14px;border-radius:10px;background:#f1f6fc;color:#526a8b;font-size:13px;line-height:1.6}
+fieldset.editor{border:0;margin:0;min-width:0}fieldset.editor:disabled{opacity:.75}
