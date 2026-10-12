@@ -322,3 +322,11 @@ body.touch-reordering,body.touch-reordering *{user-select:none!important;-webkit
 /* The capture text area uses focus alone; other fields keep their active accents. */
 .quick-composer .quick-entry{border-top-width:3px}
 .quick-composer .quick-entry:has(textarea:focus){border-top-color:#2458da}
+
+/* Keep the mobile menu motion on one composited transform layer. */
+[data-sidebar=sidebar][data-mobile=true]{transition:none!important;will-change:transform;backface-visibility:hidden;box-shadow:4px 0 14px #18345114;animation-fill-mode:both!important}
+[data-sidebar=sidebar][data-mobile=true][data-state=open]{animation:mobile-menu-enter 220ms cubic-bezier(.22,1,.36,1) both!important}
+[data-sidebar=sidebar][data-mobile=true][data-state=closed]{animation:mobile-menu-exit 160ms ease-in both!important}
+@keyframes mobile-menu-enter{from{transform:translate3d(-100%,0,0)}to{transform:translate3d(0,0,0)}}
+@keyframes mobile-menu-exit{from{transform:translate3d(0,0,0)}to{transform:translate3d(-100%,0,0)}}
+@media(prefers-reduced-motion:reduce){[data-sidebar=sidebar][data-mobile=true][data-state]{animation:none!important;will-change:auto}}
