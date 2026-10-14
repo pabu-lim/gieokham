@@ -353,10 +353,13 @@ fieldset.editor{border:0;margin:0;min-width:0}fieldset.editor:disabled{opacity:.
   .detail-sheet[data-slot=sheet-content][data-state]{animation:none!important;will-change:auto}
 }
 
-/* Mobile details are a complete screen, not a desktop panel below the topbar. */
+/* Keep the inset mobile panel, with a clearly finished header edge. */
 @media(max-width:767px){
-  .detail-sheet[data-slot=sheet-content]{top:0!important;bottom:0!important;width:100%!important;max-width:100%!important;height:100vh!important;height:100dvh!important;border-left:0;overflow:hidden}
-  .detail-sheet .detail-top{flex-shrink:0;min-height:68px;padding:calc(12px + env(safe-area-inset-top,0px)) max(18px,env(safe-area-inset-right,0px)) 12px max(20px,env(safe-area-inset-left,0px));gap:12px}
-  .detail-sheet .detail-top>button{display:grid;place-items:center;flex-shrink:0;min-width:44px;min-height:44px}
-  .detail-sheet .editor{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:22px max(22px,env(safe-area-inset-right,0px)) calc(28px + env(safe-area-inset-bottom,0px)) max(22px,env(safe-area-inset-left,0px))}
+  .detail-sheet[data-slot=sheet-content]{top:75px!important;bottom:0!important;height:calc(100vh - 75px)!important;height:calc(100dvh - 75px)!important;border:1px solid #e0e7f0;border-right:0;border-bottom:0;border-radius:20px 0 0 0;overflow:hidden}
+  .detail-sheet .detail-top{flex-shrink:0;min-height:84px;padding:18px 16px 16px 22px;gap:12px;background:linear-gradient(180deg,#f4f7fc 0%,#fff 100%);border-bottom:1px solid #e8edf4}
+  .detail-sheet .detail-top h2{font-size:16px;font-weight:650;color:#35445b;line-height:1.5}
+  .detail-sheet .swipe-close-hint{font-size:11px;color:#8190a5;margin-top:4px}
+  .detail-sheet .detail-top>button{display:grid;place-items:center;flex-shrink:0;width:44px;height:44px;border-radius:50%;background:#eef2f8;color:#65758e}
+  .detail-sheet .detail-top>button:active{background:#e2e9f3}
+  .detail-sheet .editor{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:22px 22px calc(28px + env(safe-area-inset-bottom,0px))}
 }
