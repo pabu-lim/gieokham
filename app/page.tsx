@@ -75,6 +75,41 @@ function endDetailSwipe(e:React.TouchEvent){
 }
 
 const [real,setReal]=useState<Data>(empty),[sample,setSample]=useState<Data|null>(null),[ready,setReady]=useState(false),[error,setError]=useState(''),[view,setView]=useState('home'),[query,setQuery]=useState(''),[sort,setSort]=useState('custom'),[input,setInput]=useState(''),[selected,setSelected]=useState(''),[draft,setDraft]=useState<Task|null>(null),[settings,setSettings]=useState(false),[catDialog,setCatDialog]=useState(false),[catName,setCatName]=useState(''),[rename,setRename]=useState<string|null>(null),[confirmation,setConfirmation]=useState<{title:string;body:string;action:()=>void;actionLabel?:string;destructive?:boolean}|null>(null),[today,setToday]=useState(localDate),[backupText,setBackupText]=useState(''),[restoreText,setRestoreText]=useState(''),[draggedCategory,setDraggedCategory]=useState<string|null>(null),[categoryDrop,setCategoryDrop]=useState<{name:string;edge:CategoryDropEdge}|null>(null),[user,setUser]=useState<User|null>(null),[authReady,setAuthReady]=useState(false),[signingIn,setSigningIn]=useState(false),[syncing,setSyncing]=useState(false);const dragCategoryRef=useRef<string|null>(null);const dragTaskRef=useRef<string|null>(null);const [draggedTask,setDraggedTask]=useState<string|null>(null),[taskDrop,setTaskDrop]=useState<{id:string;edge:'before'|'after'}|null>(null);
+// Lock the page behind the mobile sheet; consume boundary drags inside it.
+useEffect(()=>{
+ if(!isMobile||!selected||!draft)return;
+ const body=document.body,root=document.documentElement;
+ const before={bodyOverflow:body.style.overflow,rootOverflow:root.style.overflow,overscroll:root.style.overscrollBehavior};
+ body.style.overflow='hidden';root.style.overflow='hidden';root.style.overscrollBehavior='none';
+ let touch:{x:number;y:number}|null=null;
+ const start=(e:TouchEvent)=>{touch=e.touches.length===1?{x:e.touches[0].clientX,y:e.touches[0].clientY}:null};
+ const move=(e:TouchEvent)=>{
+  if(!touch||e.touches.length!==1)return;
+  const point=e.touches[0],dx=point.clientX-touch.x,dy=point.clientY-touch.y;
+  touch={x:point.clientX,y:point.clientY};
+  if(Math.abs(dx)>Math.abs(dy)||dy===0)return;
+  let el=e.target instanceof Element?e.target:null;
+  const sheet=el?.closest('.detail-sheet');
+  // Let portalled dialogs/selects handle their own scrolling; the page stays locked.
+  if(!sheet)return;
+  while(el&&el!==sheet){
+   const style=getComputedStyle(el);
+   if(/auto|scroll/.test(style.overflowY)&&el.scrollHeight>el.clientHeight+1){
+    if((dy>0&&el.scrollTop>0)||(dy<0&&el.scrollTop+el.clientHeight<el.scrollHeight-1))return;
+   }
+   el=el.parentElement;
+  }
+  if(e.cancelable)e.preventDefault();
+ };
+ const end=()=>{touch=null};
+ document.addEventListener('touchstart',start,{passive:true});
+ document.addEventListener('touchmove',move,{passive:false});
+ document.addEventListener('touchend',end);document.addEventListener('touchcancel',end);
+ return()=>{
+  body.style.overflow=before.bodyOverflow;root.style.overflow=before.rootOverflow;root.style.overscrollBehavior=before.overscroll;
+  document.removeEventListener('touchstart',start);document.removeEventListener('touchmove',move);document.removeEventListener('touchend',end);document.removeEventListener('touchcancel',end);
+ };
+},[isMobile,!!selected,!!draft]);
 const [serverReady,setServerReady]=useState(false);
 const [cacheCycle,setCacheCycle]=useState(0);
 const cacheDeadline=useRef(0);
