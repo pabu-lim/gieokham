@@ -352,3 +352,11 @@ fieldset.editor{border:0;margin:0;min-width:0}fieldset.editor:disabled{opacity:.
 @media(max-width:767px) and (prefers-reduced-motion:reduce){
   .detail-sheet[data-slot=sheet-content][data-state]{animation:none!important;will-change:auto}
 }
+
+/* Mobile details are a complete screen, not a desktop panel below the topbar. */
+@media(max-width:767px){
+  .detail-sheet[data-slot=sheet-content]{top:0!important;bottom:0!important;width:100%!important;max-width:100%!important;height:100vh!important;height:100dvh!important;border-left:0;overflow:hidden}
+  .detail-sheet .detail-top{flex-shrink:0;min-height:68px;padding:calc(12px + env(safe-area-inset-top,0px)) max(18px,env(safe-area-inset-right,0px)) 12px max(20px,env(safe-area-inset-left,0px));gap:12px}
+  .detail-sheet .detail-top>button{display:grid;place-items:center;flex-shrink:0;min-width:44px;min-height:44px}
+  .detail-sheet .editor{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:22px max(22px,env(safe-area-inset-right,0px)) calc(28px + env(safe-area-inset-bottom,0px)) max(22px,env(safe-area-inset-left,0px))}
+}
