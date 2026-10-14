@@ -72,15 +72,15 @@ export function scheduleLabel(t:Task,today=localDate()):string {
 export const editableMemory=(t:Task)=>JSON.stringify([t.text,t.notes||'',t.priority,t.category,t.date,t.endDate||'',t.time,t.repeat,[...t.days].sort()]);
 export function stampMemoryEdits(previous:Data,next:Data,now=Date.now()):Data{
  const old=new Map(previous.tasks.map(t=>[t.id,t]));
- return {...next,tasks:next.tasks.map(t=>{const before=old.get(t.id);return before&&editableMemory(before)!==editableMemory(t)?{...t,updated:Math.max(now,t.created)}:t})};
+ return {...next,tasks:next.tasks.map(t=>{const before=old.get(t.id);if(!before)return t;const fixed={...t,created:before.created};return editableMemory(before)!==editableMemory(t)?{...fixed,updated:Math.max(now,before.created)}:fixed})};
 }
 export function memoryTimeLabel(t:Task,now=Date.now()):string{
- const stamp=t.updated??t.created,date=new Date(stamp),current=new Date(now);
+ const stamp=t.created,date=new Date(stamp),current=new Date(now);
  if(!Number.isFinite(date.getTime()))return '';
  const minutes=Math.max(0,Math.floor((now-stamp)/60000));
  const yesterday=new Date(current);yesterday.setDate(yesterday.getDate()-1);
  const label=minutes<1?'방금':minutes<60?`${minutes}분 전`:localDate(date)===localDate(current)?`${Math.floor(minutes/60)}시간 전`:localDate(date)===localDate(yesterday)?'어제':`${date.getFullYear()!==current.getFullYear()?date.getFullYear()+'년 ':''}${date.getMonth()+1}월 ${date.getDate()}일`;
- return (t.updated!==undefined?'수정 ':'')+label;
+ return label;
 }
 export function exactMemoryTime(stamp:number):string{
  const d=new Date(stamp);return Number.isFinite(d.getTime())?`${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`:'시간 정보 없음';
