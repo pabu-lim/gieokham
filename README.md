@@ -4,9 +4,9 @@
 **머릿속은 가볍게, 중요한 일은 또렷하게.**
 
 Keep your thoughts here. Focus on what matters.
-
 문득 떠오른 생각부터 놓치면 안 되는 약속까지, 기억함에 내려놓으세요.
-기억함은 메모와 할 일, 일정을 한곳에 담고 **지금 챙겨야 할 기억을 먼저 보여주는 개인용 웹앱 서비스**입니다.
+
+기억함은 일정 등 메모를 쉽게 작성하고 **중요도와 일정에 따라 보여주는** 개인용 웹,앱 서비스입니다.
 <img width="1895" height="909" alt="image" src="https://github.com/user-attachments/assets/73772630-7239-4ffa-b74c-d3d55a52b1ea" />
 
 
