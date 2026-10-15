@@ -12,7 +12,32 @@ Keep your thoughts here. Focus on what matters.
 
 
 
-<img width="1895" height="909" alt="image" src="https://github.com/user-attachments/assets/73772630-7239-4ffa-b74c-d3d55a52b1ea" />
+## 어디서든, 나의 기억함
+
+<table>
+  <tr>
+    <th width="77%" align="left">PC · 한눈에 넓게</th>
+    <th width="23%" align="left">Mobile · 손안에 가볍게</th>
+  </tr>
+  <tr>
+    <td align="center" valign="middle">
+      <a href="https://github.com/user-attachments/assets/73772630-7239-4ffa-b74c-d3d55a52b1ea">
+        <img src="https://github.com/user-attachments/assets/73772630-7239-4ffa-b74c-d3d55a52b1ea" alt="기억함 PC 화면 — 카테고리와 홈 대시보드를 넓은 화면에서 확인" width="680">
+      </a>
+    </td>
+    <td align="center" valign="middle">
+      <a href="docs/gieokham-mobile.jpg">
+        <img src="docs/gieokham-mobile.jpg" alt="기억함 모바일 화면 — 빠른 메모 입력과 지금 챙길 기억" width="200">
+      </a>
+    </td>
+  </tr>
+  <tr>
+    <td>책상 앞에서는 오늘의 기억을 한눈에.</td>
+    <td>이동 중에는 떠오른 생각을 바로.</td>
+  </tr>
+</table>
+
+<sub>이미지를 누르면 원본 크기로 볼 수 있습니다.</sub>
 
 
 [기억함 열기](https://gieokham.house1583.chatgpt.site)
