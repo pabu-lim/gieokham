@@ -1,12 +1,6 @@
 # GIEOKHAM · 기억함
 
-<p align="left">
-  <img src="public/icons/memo-cutout-192.png" alt="" width="48" height="48" align="middle">
-  &nbsp;
-  <img src="public/icons/memo-wordmark.png" alt="기억함" width="115" height="44" align="middle">
-  <br><br>
-  나의 작은 기억 보관함
-</p>
+<img src="docs/gieokham-brand.png" alt="기억함 — 나의 작은 기억 보관함" width="179">
 
 Keep your thoughts here. Focus on what matters.
 
