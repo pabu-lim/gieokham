@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="public/icons/memo-cutout-192.png" alt="기억함 로고" width="112" height="112">
+</p>
+
 # GIEOKHAM · 기억함
 
 Keep your thoughts here. Focus on what matters.
