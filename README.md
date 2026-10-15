@@ -1,4 +1,3 @@
-<img width="1895" height="909" alt="image" src="https://github.com/user-attachments/assets/f9f9a751-d952-457f-8e5d-49c902b2507c" /># GIEOKHAM · 기억함
 
 <img src="docs/gieokham-brand.png" alt="기억함 — 나의 작은 기억 보관함" width="179">
 
